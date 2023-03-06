@@ -27,16 +27,49 @@ fun main(args: Array<String>) {
         con.createStatement().use { stmt ->
             assert(stmt.execute("create table region (r_regionkey int, r_name varchar, r_comment varchar, primary key (r_regionkey))"))
             assert(stmt.execute("create table nation (n_nationkey int, n_name varchar, n_regionkey int, n_comment varchar, primary key (n_nationkey))"))
+            assert(stmt.execute("create table part (p_partkey int, p_name varchar, p_mfgr varchar, p_brand varchar, p_type varchar, p_size int, p_container varchar, p_retailprice float, p_comment varchar, primary key (p_partkey))"))
+
+            assert(stmt.execute("create table supplier (s_suppkey int, s_name varchar, s_address varchar, s_nationkey int, s_phone varchar, s_acctbal float, s_comment varchar, primary key (s_suppkey))")) // FK to nation
+
+            assert(stmt.execute("create table partsupp (ps_partkey int, ps_suppkey int, ps_availqty int, ps_supplycost float, ps_comment varchar, primary key (ps_partkey, ps_suppkey))")) // FK to part & supplier
+
+            assert(stmt.execute("create table customer (c_custkey int, c_name varchar, c_address varchar, c_nationkey int, c_phone varchar, c_acctbal float, c_mktsegment varchar, c_comment varchar, primary key (c_custkey))")) // FK to nation
+
+            assert(stmt.execute("""create table orders (
+                |o_orderkey int, 
+                |o_custkey int, 
+                |o_orderstatus varchar, 
+                |o_totalprice float, 
+                |o_orderdate timestamp, 
+                |o_orderpriority varchar, 
+                |o_clerk varchar, 
+                |o_shippriority int, 
+                |o_comment varchar, 
+                |primary key (o_orderkey))""".trimMargin())) // FK to customer
+
+            assert(stmt.execute("""create table lineitem (
+                |l_orderkey int, 
+                |l_partkey int, 
+                |l_suppkey int, 
+                |l_linenumber int, 
+                |l_quantity float, 
+                |l_extendedprice float, 
+                |l_discount float, 
+                |l_tax float, 
+                |l_returnflag varchar, 
+                |l_linestatus varchar, 
+                |l_shipdate timestamp, 
+                |l_commitdate timestamp, 
+                |l_receiptdate timestamp, 
+                |l_shipinstruct varchar, 
+                |l_shipmode varchar, 
+                |l_comment varchar, 
+                |primary key (l_orderkey, l_linenumber))""".trimMargin()))
         }
     }
 }
 
 /*
-echo -e "c_custkey|c_name|c_address|c_nationkey|c_phone|c_acctbal|c_mktsegment|c_comment|junk\n$(cat customer.tbl)" > customer.csv
-echo -e "l_orderkey|l_partkey|l_suppkey|l_linenumber|l_quantity|l_extendedprice|l_discount|l_tax|l_returnflag|l_linestatus|l_shipdate|l_commitdate|l_receiptdate|l_shipinstruct|l_shipmode|l_comment|junk\n$(cat lineitem.tbl)" > lineitem.csv
-echo -e "o_orderkey|o_custkey|o_orderstatus|o_totalprice|o_orderdate|o_orderpriority|o_clerk|o_shippriority|o_comment|junk\n$(cat orders.tbl)" > orders.csv
-echo -e "p_partkey|p_name|p_mfgr|p_brand|p_type|p_size|p_container|p_retailprice|p_comment|junk\n$(cat part.tbl)" > part.csv
-echo -e "ps_partkey|ps_suppkey|ps_availqty|ps_supplycost|ps_comment|junk\n$(cat partsupp.tbl)" > partsupp.csv
-echo -e "s_suppkey|s_name|s_address|s_nationkey|s_phone|s_acctbal|s_comment|junk\n$(cat supplier.tbl)" > supplier.csv
+echo -e ",junk\n$(cat lineitem.tbl)" > lineitem.csv
 
  */
