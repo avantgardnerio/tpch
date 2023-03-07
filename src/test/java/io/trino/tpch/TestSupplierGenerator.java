@@ -13,6 +13,7 @@
  */
 package io.trino.tpch;
 
+import io.trino.tpch.generators.SupplierGenerator;
 import org.testng.annotations.Test;
 
 import static io.trino.tpch.GeneratorAssertions.assertEntityLinesMD5;

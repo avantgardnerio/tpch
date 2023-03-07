@@ -1,9 +1,9 @@
 package io.trino.tpch
 
+import io.trino.tpch.generators.NationGenerator
+import io.trino.tpch.generators.RegionGenerator
 import org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
-import java.io.FileWriter
 
-import java.io.Writer
 import java.sql.PreparedStatement
 import java.util.*
 
@@ -76,7 +76,7 @@ fun main(args: Array<String>) {
         val nationGen = NationGenerator().chunked(batchSize)
         var ps: PreparedStatement? = null
         var lastCount = -1
-        nationGen.forEachIndexed { idx, batch ->
+        nationGen.forEach { batch ->
             if(batch.size != lastCount) {
                 val sql = NationGenerator.getInsertStmt(minOf(batch.size, batchSize))
                 println(sql)

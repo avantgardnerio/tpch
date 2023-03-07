@@ -11,9 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.generators;
 
 import com.google.common.collect.AbstractIterator;
+import io.trino.tpch.*;
 
 import java.util.Iterator;
 
@@ -23,13 +24,13 @@ import static io.trino.tpch.GenerateUtils.TOTAL_DATE_RANGE;
 import static io.trino.tpch.GenerateUtils.calculateRowCount;
 import static io.trino.tpch.GenerateUtils.calculateStartIndex;
 import static io.trino.tpch.GenerateUtils.toEpochDate;
-import static io.trino.tpch.LineItemGenerator.ITEM_SHIP_DAYS;
-import static io.trino.tpch.LineItemGenerator.createDiscountRandom;
-import static io.trino.tpch.LineItemGenerator.createPartKeyRandom;
-import static io.trino.tpch.LineItemGenerator.createQuantityRandom;
-import static io.trino.tpch.LineItemGenerator.createShipDateRandom;
-import static io.trino.tpch.LineItemGenerator.createTaxRandom;
-import static io.trino.tpch.PartGenerator.calculatePartPrice;
+import static io.trino.tpch.generators.LineItemGenerator.ITEM_SHIP_DAYS;
+import static io.trino.tpch.generators.LineItemGenerator.createDiscountRandom;
+import static io.trino.tpch.generators.LineItemGenerator.createPartKeyRandom;
+import static io.trino.tpch.generators.LineItemGenerator.createQuantityRandom;
+import static io.trino.tpch.generators.LineItemGenerator.createShipDateRandom;
+import static io.trino.tpch.generators.LineItemGenerator.createTaxRandom;
+import static io.trino.tpch.generators.PartGenerator.calculatePartPrice;
 import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 

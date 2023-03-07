@@ -11,9 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.generators;
 
 import com.google.common.collect.AbstractIterator;
+import io.trino.tpch.*;
 
 import java.util.Iterator;
 
@@ -21,11 +22,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static io.trino.tpch.GenerateUtils.calculateRowCount;
 import static io.trino.tpch.GenerateUtils.calculateStartIndex;
 import static io.trino.tpch.GenerateUtils.toEpochDate;
-import static io.trino.tpch.OrderGenerator.LINE_COUNT_MAX;
-import static io.trino.tpch.OrderGenerator.createLineCountRandom;
-import static io.trino.tpch.OrderGenerator.createOrderDateRandom;
-import static io.trino.tpch.OrderGenerator.makeOrderKey;
-import static io.trino.tpch.PartSupplierGenerator.selectPartSupplier;
+import static io.trino.tpch.generators.OrderGenerator.LINE_COUNT_MAX;
+import static io.trino.tpch.generators.OrderGenerator.createLineCountRandom;
+import static io.trino.tpch.generators.OrderGenerator.createOrderDateRandom;
+import static io.trino.tpch.generators.OrderGenerator.makeOrderKey;
+import static io.trino.tpch.generators.PartSupplierGenerator.selectPartSupplier;
 import static java.util.Objects.requireNonNull;
 
 public class LineItemGenerator

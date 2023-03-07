@@ -11,9 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.generators;
 
 import com.google.common.collect.AbstractIterator;
+import io.trino.tpch.*;
 
 import java.util.Iterator;
 
