@@ -11,100 +11,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.columns;
 
-import io.trino.tpch.models.Part;
+import io.trino.tpch.TpchColumn;
+import io.trino.tpch.TpchColumnType;
+import io.trino.tpch.models.Supplier;
 
 import static io.trino.tpch.TpchColumnTypes.DOUBLE;
 import static io.trino.tpch.TpchColumnTypes.IDENTIFIER;
-import static io.trino.tpch.TpchColumnTypes.INTEGER;
 import static io.trino.tpch.TpchColumnTypes.varchar;
 
-public enum PartColumn
-        implements TpchColumn<Part>
+public enum SupplierColumn
+        implements TpchColumn<Supplier>
 {
-    PART_KEY("p_partkey", IDENTIFIER) {
+    SUPPLIER_KEY("s_suppkey", IDENTIFIER) {
         @Override
-        public long getIdentifier(Part part)
+        public long getIdentifier(Supplier supplier)
         {
-            return part.getPartKey();
+            return supplier.getSupplierKey();
         }
     },
 
-    NAME("p_name", varchar(55)) {
+    NAME("s_name", varchar(25)) {
         @Override
-        public String getString(Part part)
+        public String getString(Supplier supplier)
         {
-            return part.getName();
+            return supplier.getName();
         }
     },
 
-    MANUFACTURER("p_mfgr", varchar(25)) {
+    ADDRESS("s_address", varchar(40)) {
         @Override
-        public String getString(Part part)
+        public String getString(Supplier supplier)
         {
-            return part.getManufacturer();
+            return supplier.getAddress();
         }
     },
 
-    BRAND("p_brand", varchar(10)) {
+    NATION_KEY("s_nationkey", IDENTIFIER) {
         @Override
-        public String getString(Part part)
+        public long getIdentifier(Supplier supplier)
         {
-            return part.getBrand();
+            return supplier.getNationKey();
         }
     },
 
-    TYPE("p_type", varchar(25)) {
+    PHONE("s_phone", varchar(15)) {
         @Override
-        public String getString(Part part)
+        public String getString(Supplier supplier)
         {
-            return part.getType();
+            return supplier.getPhone();
         }
     },
 
-    SIZE("p_size", INTEGER) {
+    ACCOUNT_BALANCE("s_acctbal", DOUBLE) {
         @Override
-        public int getInteger(Part part)
+        public double getDouble(Supplier supplier)
         {
-            return part.getSize();
+            return supplier.getAccountBalance();
+        }
+
+        @Override
+        public long getIdentifier(Supplier supplier)
+        {
+            return supplier.getAccountBalanceInCents();
         }
     },
 
-    CONTAINER("p_container", varchar(10)) {
+    COMMENT("s_comment", varchar(101)) {
         @Override
-        public String getString(Part part)
+        public String getString(Supplier supplier)
         {
-            return part.getContainer();
-        }
-    },
-
-    RETAIL_PRICE("p_retailprice", DOUBLE) {
-        @Override
-        public double getDouble(Part part)
-        {
-            return part.getRetailPrice();
-        }
-
-        @Override
-        public long getIdentifier(Part part)
-        {
-            return part.getRetailPriceInCents();
-        }
-    },
-
-    COMMENT("p_comment", varchar(23)) {
-        @Override
-        public String getString(Part part)
-        {
-            return part.getComment();
+            return supplier.getComment();
         }
     };
 
     private final String columnName;
     private final TpchColumnType type;
 
-    PartColumn(String columnName, TpchColumnType type)
+    SupplierColumn(String columnName, TpchColumnType type)
     {
         this.columnName = columnName;
         this.type = type;
@@ -123,31 +108,31 @@ public enum PartColumn
     }
 
     @Override
-    public double getDouble(Part part)
+    public double getDouble(Supplier supplier)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long getIdentifier(Part part)
+    public long getIdentifier(Supplier supplier)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int getInteger(Part part)
+    public int getInteger(Supplier supplier)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getString(Part part)
+    public String getString(Supplier supplier)
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int getDate(Part entity)
+    public int getDate(Supplier entity)
     {
         throw new UnsupportedOperationException();
     }

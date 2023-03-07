@@ -13,6 +13,7 @@
  */
 package io.trino.tpch;
 
+import io.trino.tpch.columns.*;
 import org.testng.annotations.Test;
 
 import java.util.List;

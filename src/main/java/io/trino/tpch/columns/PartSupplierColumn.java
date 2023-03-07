@@ -11,8 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.columns;
 
+import io.trino.tpch.TpchColumn;
+import io.trino.tpch.TpchColumnType;
 import io.trino.tpch.models.PartSupplier;
 
 import static io.trino.tpch.TpchColumnTypes.DOUBLE;
