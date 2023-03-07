@@ -73,18 +73,17 @@ fun main(args: Array<String>) {
         }
 
         // Nation
-        val nationGen = NationGenerator()
+        val nationGen = NationGenerator().chunked(batchSize)
         var ps: PreparedStatement? = null
         var lastCount = -1
-        while(true) {
-            val batch = nationGen.take(batchSize).toList()
-            if(batch.isEmpty()) break;
+        nationGen.forEachIndexed { idx, batch ->
             if(batch.size != lastCount) {
                 val sql = NationGenerator.getInsertStmt(minOf(batch.size, batchSize))
                 println(sql)
                 ps = con.prepareStatement(sql)
                 lastCount = batch.size
             }
+            println("Inserting ${batch.size} rows...")
             batch.forEachIndexed { idx, el -> el!!.setParams(ps!!, idx) }
             ps!!.executeUpdate()
         }
