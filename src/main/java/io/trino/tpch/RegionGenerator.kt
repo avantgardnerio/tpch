@@ -11,69 +11,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch
 
-import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.AbstractIterator
+import java.util.*
 
-import java.util.Iterator;
+class RegionGenerator @JvmOverloads constructor(
+    distributions: Distributions = Distributions.getDefaultDistributions(),
+    textPool: TextPool = TextPool.getDefaultTextPool()
+) : Iterable<Region?> {
+    private val distributions: Distributions
+    private val textPool: TextPool
 
-import static java.util.Objects.requireNonNull;
-
-public class RegionGenerator
-        implements Iterable<Region>
-{
-    private static final int COMMENT_AVERAGE_LENGTH = 72;
-
-    private final Distributions distributions;
-    private final TextPool textPool;
-
-    public RegionGenerator()
-    {
-        this(Distributions.getDefaultDistributions(), TextPool.getDefaultTextPool());
+    init {
+        this.distributions = Objects.requireNonNull(distributions, "distributions is null")
+        this.textPool = Objects.requireNonNull(textPool, "textPool is null")
     }
 
-    public RegionGenerator(Distributions distributions, TextPool textPool)
-    {
-        this.distributions = requireNonNull(distributions, "distributions is null");
-        this.textPool = requireNonNull(textPool, "textPool is null");
+    override fun iterator(): RegionGeneratorIterator {
+        return RegionGeneratorIterator(distributions.regions, textPool)
     }
 
-    @Override
-    public Iterator<Region> iterator()
-    {
-        return new RegionGeneratorIterator(distributions.getRegions(), textPool);
-    }
+    class RegionGeneratorIterator constructor(private val regions: Distribution, textPool: TextPool) :
+        AbstractIterator<Region?>() {
+        private val commentRandom: RandomText
+        private var index = 0
 
-    private static class RegionGeneratorIterator
-            extends AbstractIterator<Region>
-    {
-        private final Distribution regions;
-        private final RandomText commentRandom;
-
-        private int index;
-
-        private RegionGeneratorIterator(Distribution regions, TextPool textPool)
-        {
-            this.regions = regions;
-            this.commentRandom = new RandomText(1500869201, textPool, COMMENT_AVERAGE_LENGTH);
+        init {
+            commentRandom = RandomText(1500869201, textPool, COMMENT_AVERAGE_LENGTH.toDouble())
         }
 
-        @Override
-        protected Region computeNext()
-        {
+        override fun computeNext(): Region? {
             if (index >= regions.size()) {
-                return endOfData();
+                return endOfData()
             }
+            val region = Region(
+                index.toLong(),
+                index.toLong(),
+                regions.getValue(index),
+                commentRandom.nextValue()
+            )
+            commentRandom.rowFinished()
+            index++
+            return region
+        }
+    }
 
-            Region region = new Region(index,
-                    index,
-                    regions.getValue(index),
-                    commentRandom.nextValue());
-
-            commentRandom.rowFinished();
-            index++;
-
-            return region;
+    companion object {
+        private const val COMMENT_AVERAGE_LENGTH = 72
+        fun getInsertStmt(rowCount: Int): String {
+            val colCount = 3;
+            val rows = (0 until rowCount).map { rowIdx ->
+                val tokens = (1..colCount).map { colIdx -> "$${rowIdx * colCount + colIdx}" }
+                "(${tokens.joinToString(", ")})"
+            }.joinToString(",\n\t")
+            return "insert into region (r_regionkey, r_name, r_comment) values\n\t$rows"
         }
     }
 }

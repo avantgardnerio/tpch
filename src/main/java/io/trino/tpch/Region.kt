@@ -11,51 +11,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch
 
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+import java.sql.PreparedStatement
+import java.util.*
 
-public class Region
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long regionKey;
-    private final String name;
-    private final String comment;
+class Region(private val rowNumber: Long, @JvmField val regionKey: Long, name: String, comment: String) : TpchEntity {
+    @JvmField
+    val name: String
+    @JvmField
+    val comment: String
 
-    public Region(long rowNumber, long regionKey, String name, String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.regionKey = regionKey;
-        this.name = requireNonNull(name, "name is null");
-        this.comment = requireNonNull(comment, "comment is null");
+    init {
+        this.name = Objects.requireNonNull(name, "name is null")
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    override fun getRowNumber(): Long {
+        return rowNumber
     }
 
-    public long getRegionKey()
-    {
-        return regionKey;
+    override fun toLine(): String {
+        return String.format(Locale.ENGLISH, "%d|%s|%s|", regionKey, name, comment)
     }
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH, "%d|%s|%s|", regionKey, name, comment);
+    fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 3
+        println("base=$base")
+        ps.setInt(base + 1, regionKey.toInt())
+        ps.setString(base + 2, name)
+        ps.setString(base + 3, comment)
     }
 }

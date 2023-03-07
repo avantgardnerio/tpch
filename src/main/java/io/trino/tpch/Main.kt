@@ -7,15 +7,10 @@ import java.io.Writer
 import java.util.*
 
 fun main(args: Array<String>) {
-    println(args.contentToString())
-    val writer: Writer = FileWriter("customer.csv")
     val scaleFactor = 1.0
     val part = 1
     val numberOfParts = 1
-    for (entity in CustomerGenerator(scaleFactor, part, numberOfParts)) {
-        writer.write(entity.toLine())
-        writer.write('\n'.code)
-    }
+    val batchSize = 10
 
     val driver = ArrowFlightJdbcDriver()
     val url = "jdbc:arrow-flight://127.0.0.1:50060"
@@ -25,6 +20,7 @@ fun main(args: Array<String>) {
     props.setProperty("password", "password")
     driver.connect(url, props).use { con ->
         con.createStatement().use { stmt ->
+            // Schema
             assert(stmt.execute("create table region (r_regionkey int, r_name varchar, r_comment varchar, primary key (r_regionkey))"))
             assert(stmt.execute("create table nation (n_nationkey int, n_name varchar, n_regionkey int, n_comment varchar, primary key (n_nationkey))"))
             assert(stmt.execute("create table part (p_partkey int, p_name varchar, p_mfgr varchar, p_brand varchar, p_type varchar, p_size int, p_container varchar, p_retailprice float, p_comment varchar, primary key (p_partkey))"))
@@ -66,10 +62,15 @@ fun main(args: Array<String>) {
                 |l_comment varchar, 
                 |primary key (l_orderkey, l_linenumber))""".trimMargin()))
         }
+
+        // Data
+        val batch = RegionGenerator().take(batchSize).toList()
+        val sql = RegionGenerator.getInsertStmt(minOf(batch.size, batchSize))
+        println(sql)
+        con.prepareStatement(sql).use { ps ->
+            batch.forEachIndexed { idx, el -> el!!.setParams(ps, idx) }
+            val res = ps.executeUpdate()
+            println("region result=$res")
+        }
     }
 }
-
-/*
-echo -e ",junk\n$(cat lineitem.tbl)" > lineitem.csv
-
- */
