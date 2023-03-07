@@ -16,7 +16,7 @@ package io.trino.tpch.generators;
 import com.google.common.base.Splitter;
 import io.trino.tpch.Distribution;
 import io.trino.tpch.Distributions;
-import io.trino.tpch.RandomInt;
+import io.trino.tpch.random.RandomInt;
 
 import java.util.List;
 

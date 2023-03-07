@@ -11,26 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.random;
 
-public class RandomString
-        extends RandomInt
+import io.trino.tpch.AbstractRandomInt;
+
+public class RandomInt
+        extends AbstractRandomInt
 {
-    private final Distribution distribution;
-
-    public RandomString(long seed, Distribution distribution)
+    public RandomInt(long seed, int expectedUsagePerRow)
     {
-        this(seed, distribution, 1);
+        super(seed, expectedUsagePerRow);
     }
 
-    public RandomString(long seed, Distribution distribution, int expectedRowCount)
+    @Override
+    public int nextInt(int lowValue, int highValue)
     {
-        super(seed, expectedRowCount);
-        this.distribution = distribution;
-    }
-
-    public String nextValue()
-    {
-        return distribution.randomValue(this);
+        return super.nextInt(lowValue, highValue);
     }
 }

@@ -16,6 +16,7 @@ package io.trino.tpch.generators;
 import com.google.common.collect.AbstractIterator;
 import io.trino.tpch.*;
 import io.trino.tpch.models.Customer;
+import io.trino.tpch.random.*;
 
 import java.util.Iterator;
 

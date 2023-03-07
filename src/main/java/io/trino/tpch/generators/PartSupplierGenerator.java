@@ -16,6 +16,8 @@ package io.trino.tpch.generators;
 import com.google.common.collect.AbstractIterator;
 import io.trino.tpch.*;
 import io.trino.tpch.models.PartSupplier;
+import io.trino.tpch.random.RandomBoundedInt;
+import io.trino.tpch.random.RandomText;
 
 import java.util.Iterator;
 

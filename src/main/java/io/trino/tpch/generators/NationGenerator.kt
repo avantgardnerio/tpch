@@ -16,6 +16,7 @@ package io.trino.tpch.generators
 import com.google.common.collect.AbstractIterator
 import io.trino.tpch.*
 import io.trino.tpch.models.Nation
+import io.trino.tpch.random.RandomText
 import java.util.*
 
 class NationGenerator @JvmOverloads constructor(
@@ -40,7 +41,11 @@ class NationGenerator @JvmOverloads constructor(
         private var index = 0
 
         init {
-            commentRandom = RandomText(606179079, textPool, COMMENT_AVERAGE_LENGTH.toDouble())
+            commentRandom = RandomText(
+                606179079,
+                textPool,
+                COMMENT_AVERAGE_LENGTH.toDouble()
+            )
         }
 
         override fun computeNext(): Nation? {

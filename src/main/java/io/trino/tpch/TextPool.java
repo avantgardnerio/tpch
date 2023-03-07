@@ -13,6 +13,8 @@
  */
 package io.trino.tpch;
 
+import io.trino.tpch.random.RandomInt;
+
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkState;

@@ -14,6 +14,7 @@
 package io.trino.tpch;
 
 import com.google.common.collect.ImmutableList;
+import io.trino.tpch.random.RandomInt;
 
 import java.util.List;
 import java.util.Map;
