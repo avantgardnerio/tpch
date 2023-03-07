@@ -15,6 +15,7 @@ package io.trino.tpch.generators
 
 import com.google.common.collect.AbstractIterator
 import io.trino.tpch.*
+import io.trino.tpch.models.Region
 import java.util.*
 
 class RegionGenerator @JvmOverloads constructor(

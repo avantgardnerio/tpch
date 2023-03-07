@@ -13,6 +13,8 @@
  */
 package io.trino.tpch;
 
+import io.trino.tpch.models.Order;
+
 import static io.trino.tpch.GenerateUtils.formatDate;
 import static io.trino.tpch.TpchColumnTypes.DATE;
 import static io.trino.tpch.TpchColumnTypes.DOUBLE;

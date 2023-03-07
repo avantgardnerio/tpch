@@ -11,7 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.models;
+
+import io.trino.tpch.TpchEntity;
 
 import static io.trino.tpch.GenerateUtils.formatDate;
 import static io.trino.tpch.GenerateUtils.formatMoney;

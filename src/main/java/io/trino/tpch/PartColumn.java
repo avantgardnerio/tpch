@@ -13,6 +13,8 @@
  */
 package io.trino.tpch;
 
+import io.trino.tpch.models.Part;
+
 import static io.trino.tpch.TpchColumnTypes.DOUBLE;
 import static io.trino.tpch.TpchColumnTypes.IDENTIFIER;
 import static io.trino.tpch.TpchColumnTypes.INTEGER;

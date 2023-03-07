@@ -11,35 +11,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch.models;
+
+import io.trino.tpch.TpchEntity;
 
 import static io.trino.tpch.GenerateUtils.formatMoney;
 import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 
-public class Customer
+public class Supplier
         implements TpchEntity
 {
     private final long rowNumber;
-    private final long customerKey;
+    private final long supplierKey;
     private final String name;
     private final String address;
     private final long nationKey;
     private final String phone;
     private final long accountBalance;
-    private final String marketSegment;
     private final String comment;
 
-    public Customer(long rowNumber, long customerKey, String name, String address, long nationKey, String phone, long accountBalance, String marketSegment, String comment)
+    public Supplier(long rowNumber, long supplierKey, String name, String address, long nationKey, String phone, long accountBalance, String comment)
     {
         this.rowNumber = rowNumber;
-        this.customerKey = customerKey;
+        this.supplierKey = supplierKey;
         this.name = requireNonNull(name, "name is null");
         this.address = requireNonNull(address, "address is null");
         this.nationKey = nationKey;
         this.phone = requireNonNull(phone, "phone is null");
         this.accountBalance = accountBalance;
-        this.marketSegment = requireNonNull(marketSegment, "marketSegment is null");
         this.comment = requireNonNull(comment, "comment is null");
     }
 
@@ -49,9 +49,9 @@ public class Customer
         return rowNumber;
     }
 
-    public long getCustomerKey()
+    public long getSupplierKey()
     {
-        return customerKey;
+        return supplierKey;
     }
 
     public String getName()
@@ -84,11 +84,6 @@ public class Customer
         return accountBalance;
     }
 
-    public String getMarketSegment()
-    {
-        return marketSegment;
-    }
-
     public String getComment()
     {
         return comment;
@@ -98,14 +93,13 @@ public class Customer
     public String toLine()
     {
         return String.format(ENGLISH,
-                "%d|%s|%s|%d|%s|%s|%s|%s|",
-                customerKey,
+                "%d|%s|%s|%d|%s|%s|%s|",
+                supplierKey,
                 name,
                 address,
                 nationKey,
                 phone,
                 formatMoney(accountBalance),
-                marketSegment,
                 comment);
     }
 }

@@ -15,6 +15,7 @@ package io.trino.tpch.generators;
 
 import com.google.common.collect.AbstractIterator;
 import io.trino.tpch.*;
+import io.trino.tpch.models.PartSupplier;
 
 import java.util.Iterator;
 

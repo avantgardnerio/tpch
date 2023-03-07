@@ -13,6 +13,8 @@
  */
 package io.trino.tpch;
 
+import io.trino.tpch.models.Nation;
+
 import static io.trino.tpch.TpchColumnTypes.IDENTIFIER;
 import static io.trino.tpch.TpchColumnTypes.varchar;
 
