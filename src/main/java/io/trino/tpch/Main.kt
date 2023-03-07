@@ -4,6 +4,7 @@ import org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
 import java.io.FileWriter
 
 import java.io.Writer
+import java.sql.PreparedStatement
 import java.util.*
 
 fun main(args: Array<String>) {
@@ -63,14 +64,29 @@ fun main(args: Array<String>) {
                 |primary key (l_orderkey, l_linenumber))""".trimMargin()))
         }
 
-        // Data
-        val batch = RegionGenerator().take(batchSize).toList()
-        val sql = RegionGenerator.getInsertStmt(minOf(batch.size, batchSize))
-        println(sql)
-        con.prepareStatement(sql).use { ps ->
-            batch.forEachIndexed { idx, el -> el!!.setParams(ps, idx) }
-            val res = ps.executeUpdate()
-            println("region result=$res")
+        // Region
+        val regionBatch = RegionGenerator().take(batchSize).toList()
+        val regionSql = RegionGenerator.getInsertStmt(minOf(regionBatch.size, batchSize))
+        con.prepareStatement(regionSql).use { ps ->
+            regionBatch.forEachIndexed { idx, el -> el!!.setParams(ps, idx) }
+            ps.executeUpdate()
+        }
+
+        // Nation
+        val nationGen = NationGenerator()
+        var ps: PreparedStatement? = null
+        var lastCount = -1
+        while(true) {
+            val batch = nationGen.take(batchSize).toList()
+            if(batch.isEmpty()) break;
+            if(batch.size != lastCount) {
+                val sql = NationGenerator.getInsertStmt(minOf(batch.size, batchSize))
+                println(sql)
+                ps = con.prepareStatement(sql)
+                lastCount = batch.size
+            }
+            batch.forEachIndexed { idx, el -> el!!.setParams(ps!!, idx) }
+            ps!!.executeUpdate()
         }
     }
 }

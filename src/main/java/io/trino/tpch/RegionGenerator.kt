@@ -59,6 +59,7 @@ class RegionGenerator @JvmOverloads constructor(
 
     companion object {
         private const val COMMENT_AVERAGE_LENGTH = 72
+
         fun getInsertStmt(rowCount: Int): String {
             val colCount = 3;
             val rows = (0 until rowCount).map { rowIdx ->

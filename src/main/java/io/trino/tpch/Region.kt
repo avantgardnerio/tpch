@@ -37,7 +37,6 @@ class Region(private val rowNumber: Long, @JvmField val regionKey: Long, name: S
 
     fun setParams(ps: PreparedStatement, rowIdx: Int) {
         val base = rowIdx * 3
-        println("base=$base")
         ps.setInt(base + 1, regionKey.toInt())
         ps.setString(base + 2, name)
         ps.setString(base + 3, comment)

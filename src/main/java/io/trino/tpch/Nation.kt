@@ -11,58 +11,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch
 
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+import java.sql.PreparedStatement
+import java.util.*
 
-public class Nation
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long nationKey;
-    private final String name;
-    private final long regionKey;
-    private final String comment;
+class Nation(
+    private val rowNumber: Long,
+    @JvmField val nationKey: Long,
+    name: String,
+    @JvmField val regionKey: Long,
+    comment: String
+) :
+    TpchEntity {
+    @JvmField
+    val name: String
 
-    public Nation(long rowNumber, long nationKey, String name, long regionKey, String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.nationKey = nationKey;
-        this.name = requireNonNull(name, "name is null");
-        this.regionKey = regionKey;
-        this.comment = requireNonNull(comment, "comment is null");
+    @JvmField
+    val comment: String
+
+    init {
+        this.name = Objects.requireNonNull(name, "name is null")
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    override fun getRowNumber(): Long {
+        return rowNumber
     }
 
-    public long getNationKey()
-    {
-        return nationKey;
+    override fun toLine(): String {
+        return String.format(Locale.ENGLISH, "%d|%s|%d|%s|", nationKey, name, regionKey, comment)
     }
 
-    public String getName()
-    {
-        return name;
+    fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 4
+        ps.setInt(base + 1, nationKey.toInt())
+        ps.setString(base + 2, name)
+        ps.setInt(base + 3, regionKey.toInt())
+        ps.setString(base + 4, comment)
     }
 
-    public long getRegionKey()
-    {
-        return regionKey;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH, "%d|%s|%d|%s|", nationKey, name, regionKey, comment);
-    }
 }
