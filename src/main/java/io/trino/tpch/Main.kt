@@ -16,7 +16,7 @@ import java.sql.PreparedStatement
 import java.util.*
 
 fun main() {
-    val scaleFactor = 1.0
+    val scaleFactor = 0.1
     val part = 1
     val numberOfParts = 1
     val batchSize = 100
