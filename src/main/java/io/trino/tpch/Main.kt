@@ -1,5 +1,6 @@
 package io.trino.tpch
 
+import io.trino.tpch.generators.CustomerGenerator
 import io.trino.tpch.generators.ItemGenerator
 import io.trino.tpch.generators.NationGenerator
 import io.trino.tpch.generators.PartGenerator
@@ -109,6 +110,7 @@ fun main() {
         insert(PartGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(SupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(PartSupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
+        insert(CustomerGenerator(scaleFactor, part, numberOfParts), batchSize, con)
     }
 }
 

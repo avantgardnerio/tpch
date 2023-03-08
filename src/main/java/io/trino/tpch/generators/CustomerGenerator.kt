@@ -11,132 +11,120 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.generators;
+package io.trino.tpch.generators
 
-import com.google.common.collect.AbstractIterator;
-import io.trino.tpch.*;
-import io.trino.tpch.models.Customer;
-import io.trino.tpch.random.*;
+import com.google.common.base.Preconditions
+import com.google.common.collect.AbstractIterator
+import io.trino.tpch.Distributions
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TextPool
+import io.trino.tpch.models.Customer
+import io.trino.tpch.random.*
+import java.util.*
 
-import java.util.Iterator;
+class CustomerGenerator @JvmOverloads constructor(
+    scaleFactor: Double,
+    part: Int,
+    partCount: Int,
+    distributions: Distributions = Distributions.getDefaultDistributions(),
+    textPool: TextPool = TextPool.getDefaultTextPool()
+) : ItemGenerator<Customer?> {
+    private val scaleFactor: Double
+    private val part: Int
+    private val partCount: Int
+    private val distributions: Distributions
+    private val textPool: TextPool
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static io.trino.tpch.GenerateUtils.calculateRowCount;
-import static io.trino.tpch.GenerateUtils.calculateStartIndex;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
-
-public class CustomerGenerator
-        implements Iterable<Customer>
-{
-    public static final int SCALE_BASE = 150_000;
-    private static final int ACCOUNT_BALANCE_MIN = -99999;
-    private static final int ACCOUNT_BALANCE_MAX = 999999;
-    private static final int ADDRESS_AVERAGE_LENGTH = 25;
-    private static final int COMMENT_AVERAGE_LENGTH = 73;
-
-    private final double scaleFactor;
-    private final int part;
-    private final int partCount;
-
-    private final Distributions distributions;
-    private final TextPool textPool;
-
-    public CustomerGenerator(double scaleFactor, int part, int partCount)
-    {
-        this(scaleFactor, part, partCount, Distributions.getDefaultDistributions(), TextPool.getDefaultTextPool());
+    init {
+        Preconditions.checkArgument(scaleFactor > 0, "scaleFactor must be greater than 0")
+        Preconditions.checkArgument(part >= 1, "part must be at least 1")
+        Preconditions.checkArgument(part <= partCount, "part must be less than or equal to part count")
+        this.scaleFactor = scaleFactor
+        this.part = part
+        this.partCount = partCount
+        this.distributions = Objects.requireNonNull(distributions, "distributions is null")
+        this.textPool = Objects.requireNonNull(textPool, "textPool is null")
     }
 
-    public CustomerGenerator(double scaleFactor, int part, int partCount, Distributions distributions, TextPool textPool)
-    {
-        checkArgument(scaleFactor > 0, "scaleFactor must be greater than 0");
-        checkArgument(part >= 1, "part must be at least 1");
-        checkArgument(part <= partCount, "part must be less than or equal to part count");
-
-        this.scaleFactor = scaleFactor;
-        this.part = part;
-        this.partCount = partCount;
-
-        this.distributions = requireNonNull(distributions, "distributions is null");
-        this.textPool = requireNonNull(textPool, "textPool is null");
+    override fun iterator(): CustomerGeneratorIterator {
+        return CustomerGeneratorIterator(
+            distributions,
+            textPool,
+            GenerateUtils.calculateStartIndex(SCALE_BASE, scaleFactor, part, partCount),
+            GenerateUtils.calculateRowCount(SCALE_BASE, scaleFactor, part, partCount)
+        )
     }
 
-    @Override
-    public Iterator<Customer> iterator()
-    {
-        return new CustomerGeneratorIterator(
-                distributions,
-                textPool,
-                calculateStartIndex(SCALE_BASE, scaleFactor, part, partCount),
-                calculateRowCount(SCALE_BASE, scaleFactor, part, partCount));
+    override fun getInsertStmt(rowCount: Int): String {
+        val colCount = 8
+        val rows = (0 until rowCount).map { rowIdx ->
+            val tokens = (1..colCount).map { colIdx -> "$${rowIdx * colCount + colIdx}" }
+            "(${tokens.joinToString(", ")})"
+        }.joinToString(",\n\t")
+        return "insert into customer (c_custkey, c_name, c_address, c_nationkey, c_phone, c_acctbal, c_mktsegment, c_comment) values\n\t$rows"
     }
 
-    private static class CustomerGeneratorIterator
-            extends AbstractIterator<Customer>
-    {
-        private final RandomAlphaNumeric addressRandom = new RandomAlphaNumeric(881155353, ADDRESS_AVERAGE_LENGTH);
-        private final RandomBoundedInt nationKeyRandom;
-        private final RandomPhoneNumber phoneRandom = new RandomPhoneNumber(1521138112);
-        private final RandomBoundedInt accountBalanceRandom = new RandomBoundedInt(298370230, ACCOUNT_BALANCE_MIN, ACCOUNT_BALANCE_MAX);
-        private final RandomString marketSegmentRandom;
-        private final RandomText commentRandom;
+    class CustomerGeneratorIterator constructor(
+        distributions: Distributions,
+        textPool: TextPool,
+        private val startIndex: Long,
+        private val rowCount: Long
+    ) : AbstractIterator<Customer?>() {
+        private val addressRandom = RandomAlphaNumeric(881155353, ADDRESS_AVERAGE_LENGTH)
+        private val nationKeyRandom: RandomBoundedInt
+        private val phoneRandom = RandomPhoneNumber(1521138112)
+        private val accountBalanceRandom = RandomBoundedInt(298370230, ACCOUNT_BALANCE_MIN, ACCOUNT_BALANCE_MAX)
+        private val marketSegmentRandom: RandomString
+        private val commentRandom: RandomText
+        private var index: Long = 0
 
-        private final long startIndex;
-        private final long rowCount;
-
-        private long index;
-
-        private CustomerGeneratorIterator(Distributions distributions, TextPool textPool, long startIndex, long rowCount)
-        {
-            this.startIndex = startIndex;
-            this.rowCount = rowCount;
-
-            nationKeyRandom = new RandomBoundedInt(1489529863, 0, distributions.getNations().size() - 1);
-            marketSegmentRandom = new RandomString(1140279430, distributions.getMarketSegments());
-            commentRandom = new RandomText(1335826707, textPool, COMMENT_AVERAGE_LENGTH);
-
-            addressRandom.advanceRows(startIndex);
-            nationKeyRandom.advanceRows(startIndex);
-            phoneRandom.advanceRows(startIndex);
-            accountBalanceRandom.advanceRows(startIndex);
-            marketSegmentRandom.advanceRows(startIndex);
-            commentRandom.advanceRows(startIndex);
+        init {
+            nationKeyRandom = RandomBoundedInt(1489529863, 0, distributions.nations.size() - 1)
+            marketSegmentRandom = RandomString(1140279430, distributions.marketSegments)
+            commentRandom = RandomText(1335826707, textPool, COMMENT_AVERAGE_LENGTH.toDouble())
+            addressRandom.advanceRows(startIndex)
+            nationKeyRandom.advanceRows(startIndex)
+            phoneRandom.advanceRows(startIndex)
+            accountBalanceRandom.advanceRows(startIndex)
+            marketSegmentRandom.advanceRows(startIndex)
+            commentRandom.advanceRows(startIndex)
         }
 
-        @Override
-        protected Customer computeNext()
-        {
+        override fun computeNext(): Customer? {
             if (index >= rowCount) {
-                return endOfData();
+                return endOfData()
             }
-
-            Customer customer = makeCustomer(startIndex + index + 1);
-
-            addressRandom.rowFinished();
-            nationKeyRandom.rowFinished();
-            phoneRandom.rowFinished();
-            accountBalanceRandom.rowFinished();
-            marketSegmentRandom.rowFinished();
-            commentRandom.rowFinished();
-
-            index++;
-
-            return customer;
+            val customer = makeCustomer(startIndex + index + 1)
+            addressRandom.rowFinished()
+            nationKeyRandom.rowFinished()
+            phoneRandom.rowFinished()
+            accountBalanceRandom.rowFinished()
+            marketSegmentRandom.rowFinished()
+            commentRandom.rowFinished()
+            index++
+            return customer
         }
 
-        private Customer makeCustomer(long customerKey)
-        {
-            long nationKey = nationKeyRandom.nextValue();
-
-            return new Customer(customerKey,
-                    customerKey,
-                    String.format(ENGLISH, "Customer#%09d", customerKey),
-                    addressRandom.nextValue(),
-                    nationKey,
-                    phoneRandom.nextValue(nationKey),
-                    accountBalanceRandom.nextValue(),
-                    marketSegmentRandom.nextValue(),
-                    commentRandom.nextValue());
+        private fun makeCustomer(customerKey: Long): Customer {
+            val nationKey = nationKeyRandom.nextValue().toLong()
+            return Customer(
+                customerKey,
+                customerKey, String.format(Locale.ENGLISH, "Customer#%09d", customerKey),
+                addressRandom.nextValue(),
+                nationKey,
+                phoneRandom.nextValue(nationKey),
+                accountBalanceRandom.nextValue().toLong(),
+                marketSegmentRandom.nextValue(),
+                commentRandom.nextValue()
+            )
         }
+    }
+
+    companion object {
+        const val SCALE_BASE = 150000
+        private const val ACCOUNT_BALANCE_MIN = -99999
+        private const val ACCOUNT_BALANCE_MAX = 999999
+        private const val ADDRESS_AVERAGE_LENGTH = 25
+        private const val COMMENT_AVERAGE_LENGTH = 73
     }
 }
