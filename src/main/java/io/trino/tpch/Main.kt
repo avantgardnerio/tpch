@@ -3,6 +3,7 @@ package io.trino.tpch
 import io.trino.tpch.generators.ItemGenerator
 import io.trino.tpch.generators.NationGenerator
 import io.trino.tpch.generators.PartGenerator
+import io.trino.tpch.generators.PartSupplierGenerator
 import io.trino.tpch.generators.RegionGenerator
 import io.trino.tpch.generators.SupplierGenerator
 import org.apache.arrow.driver.jdbc.ArrowFlightConnection
@@ -107,6 +108,7 @@ fun main() {
         insert(NationGenerator(), batchSize, con)
         insert(PartGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(SupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
+        insert(PartSupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
     }
 }
 
