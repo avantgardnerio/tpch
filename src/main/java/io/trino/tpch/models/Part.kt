@@ -74,15 +74,15 @@ class Part(
     }
 
     override fun setParams(ps: PreparedStatement, rowIdx: Int) {
-        val base = rowIdx * 8
+        val base = rowIdx * 9
         ps.setInt(base + 1, partKey.toInt())
-        ps.setString(base + 1, name)
-        ps.setString(base + 2, manufacturer)
-        ps.setString(base + 3, brand)
-        ps.setString(base + 4, type)
-        ps.setInt(base + 5, size)
-        ps.setString(base + 6, container)
-        ps.setFloat(base + 7, retailPriceInCents.toFloat() / 100f)
-        ps.setString(base + 8, comment)
+        ps.setString(base + 2, name)
+        ps.setString(base + 3, manufacturer)
+        ps.setString(base + 4, brand)
+        ps.setString(base + 5, type)
+        ps.setInt(base + 6, size)
+        ps.setString(base + 7, container)
+        ps.setFloat(base + 8, retailPriceInCents.toFloat() / 100f)
+        ps.setString(base + 9, comment)
     }
 }

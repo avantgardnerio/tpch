@@ -66,7 +66,7 @@ class NationGenerator @JvmOverloads constructor(
     }
 
     override fun getInsertStmt(rowCount: Int): String {
-        val colCount = 4;
+        val colCount = 4
         val rows = (0 until rowCount).map { rowIdx ->
             val tokens = (1..colCount).map { colIdx -> "$${rowIdx * colCount + colIdx}" }
             "(${tokens.joinToString(", ")})"

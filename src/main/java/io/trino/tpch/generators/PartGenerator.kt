@@ -11,162 +11,147 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.generators;
+package io.trino.tpch.generators
 
-import com.google.common.collect.AbstractIterator;
-import io.trino.tpch.*;
-import io.trino.tpch.models.Part;
-import io.trino.tpch.random.RandomBoundedInt;
-import io.trino.tpch.random.RandomString;
-import io.trino.tpch.random.RandomStringSequence;
-import io.trino.tpch.random.RandomText;
+import com.google.common.base.Preconditions
+import com.google.common.collect.AbstractIterator
+import io.trino.tpch.Distributions
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TextPool
+import io.trino.tpch.models.Part
+import io.trino.tpch.random.RandomBoundedInt
+import io.trino.tpch.random.RandomString
+import io.trino.tpch.random.RandomStringSequence
+import io.trino.tpch.random.RandomText
+import java.util.*
 
-import java.util.Iterator;
+class PartGenerator @JvmOverloads constructor(
+    scaleFactor: Double,
+    part: Int,
+    partCount: Int,
+    distributions: Distributions = Distributions.getDefaultDistributions(),
+    textPool: TextPool = TextPool.getDefaultTextPool()
+) : ItemGenerator<Part?> {
+    private val scaleFactor: Double
+    private val part: Int
+    private val partCount: Int
+    private val distributions: Distributions
+    private val textPool: TextPool
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static io.trino.tpch.GenerateUtils.calculateRowCount;
-import static io.trino.tpch.GenerateUtils.calculateStartIndex;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
-
-public class PartGenerator
-        implements Iterable<Part>
-{
-    public static final int SCALE_BASE = 200_000;
-
-    private static final int NAME_WORDS = 5;
-    private static final int MANUFACTURER_MIN = 1;
-    private static final int MANUFACTURER_MAX = 5;
-    private static final int BRAND_MIN = 1;
-    private static final int BRAND_MAX = 5;
-    private static final int SIZE_MIN = 1;
-    private static final int SIZE_MAX = 50;
-    private static final int COMMENT_AVERAGE_LENGTH = 14;
-
-    private final double scaleFactor;
-    private final int part;
-    private final int partCount;
-
-    private final Distributions distributions;
-    private final TextPool textPool;
-
-    public PartGenerator(double scaleFactor, int part, int partCount)
-    {
-        this(scaleFactor, part, partCount, Distributions.getDefaultDistributions(), TextPool.getDefaultTextPool());
+    init {
+        Preconditions.checkArgument(scaleFactor > 0, "scaleFactor must be greater than 0")
+        Preconditions.checkArgument(part >= 1, "part must be at least 1")
+        Preconditions.checkArgument(part <= partCount, "part must be less than or equal to part count")
+        this.scaleFactor = scaleFactor
+        this.part = part
+        this.partCount = partCount
+        this.distributions = Objects.requireNonNull(distributions, "distributions is null")
+        this.textPool = Objects.requireNonNull(textPool, "textPool is null")
     }
 
-    public PartGenerator(double scaleFactor, int part, int partCount, Distributions distributions, TextPool textPool)
-    {
-        checkArgument(scaleFactor > 0, "scaleFactor must be greater than 0");
-        checkArgument(part >= 1, "part must be at least 1");
-        checkArgument(part <= partCount, "part must be less than or equal to part count");
-
-        this.scaleFactor = scaleFactor;
-        this.part = part;
-        this.partCount = partCount;
-
-        this.distributions = requireNonNull(distributions, "distributions is null");
-        this.textPool = requireNonNull(textPool, "textPool is null");
+    override fun iterator(): PartGeneratorIterator {
+        return PartGeneratorIterator(
+            distributions,
+            textPool,
+            GenerateUtils.calculateStartIndex(SCALE_BASE, scaleFactor, part, partCount),
+            GenerateUtils.calculateRowCount(SCALE_BASE, scaleFactor, part, partCount)
+        )
     }
 
-    @Override
-    public Iterator<Part> iterator()
-    {
-        return new PartGeneratorIterator(
-                distributions,
-                textPool,
-                calculateStartIndex(SCALE_BASE, scaleFactor, part, partCount),
-                calculateRowCount(SCALE_BASE, scaleFactor, part, partCount));
+    override fun getInsertStmt(rowCount: Int): String {
+        val colCount = 9
+        val rows = (0 until rowCount).map { rowIdx ->
+            val tokens = (1..colCount).map { colIdx -> "$${rowIdx * colCount + colIdx}" }
+            "(${tokens.joinToString(", ")})"
+        }.joinToString(",\n\t")
+        return "insert into part (p_partkey, p_name, p_mfgr, p_brand, p_type, p_size, p_container, p_retailprice, p_comment) values\n\t$rows"
     }
 
-    private static class PartGeneratorIterator
-            extends AbstractIterator<Part>
-    {
-        private final RandomStringSequence nameRandom;
-        private final RandomBoundedInt manufacturerRandom;
-        private final RandomBoundedInt brandRandom;
-        private final RandomString typeRandom;
-        private final RandomBoundedInt sizeRandom;
-        private final RandomString containerRandom;
-        private final RandomText commentRandom;
+    class PartGeneratorIterator constructor(
+        distributions: Distributions,
+        textPool: TextPool,
+        private val startIndex: Long,
+        private val rowCount: Long
+    ) : AbstractIterator<Part?>() {
+        private val nameRandom: RandomStringSequence
+        private val manufacturerRandom: RandomBoundedInt
+        private val brandRandom: RandomBoundedInt
+        private val typeRandom: RandomString
+        private val sizeRandom: RandomBoundedInt
+        private val containerRandom: RandomString
+        private val commentRandom: RandomText
+        private var index: Long = 0
 
-        private final long startIndex;
-        private final long rowCount;
-
-        private long index;
-
-        private PartGeneratorIterator(Distributions distributions, TextPool textPool, long startIndex, long rowCount)
-        {
-            this.startIndex = startIndex;
-            this.rowCount = rowCount;
-
-            nameRandom = new RandomStringSequence(709314158, NAME_WORDS, distributions.getPartColors());
-            manufacturerRandom = new RandomBoundedInt(1, MANUFACTURER_MIN, MANUFACTURER_MAX);
-            brandRandom = new RandomBoundedInt(46831694, BRAND_MIN, BRAND_MAX);
-            typeRandom = new RandomString(1841581359, distributions.getPartTypes());
-            sizeRandom = new RandomBoundedInt(1193163244, SIZE_MIN, SIZE_MAX);
-            containerRandom = new RandomString(727633698, distributions.getPartContainers());
-            commentRandom = new RandomText(804159733, textPool, COMMENT_AVERAGE_LENGTH);
-
-            nameRandom.advanceRows(startIndex);
-            manufacturerRandom.advanceRows(startIndex);
-            brandRandom.advanceRows(startIndex);
-            typeRandom.advanceRows(startIndex);
-            sizeRandom.advanceRows(startIndex);
-            containerRandom.advanceRows(startIndex);
-            commentRandom.advanceRows(startIndex);
+        init {
+            nameRandom = RandomStringSequence(709314158, NAME_WORDS, distributions.partColors)
+            manufacturerRandom = RandomBoundedInt(1, MANUFACTURER_MIN, MANUFACTURER_MAX)
+            brandRandom = RandomBoundedInt(46831694, BRAND_MIN, BRAND_MAX)
+            typeRandom = RandomString(1841581359, distributions.partTypes)
+            sizeRandom = RandomBoundedInt(1193163244, SIZE_MIN, SIZE_MAX)
+            containerRandom = RandomString(727633698, distributions.partContainers)
+            commentRandom = RandomText(804159733, textPool, COMMENT_AVERAGE_LENGTH.toDouble())
+            nameRandom.advanceRows(startIndex)
+            manufacturerRandom.advanceRows(startIndex)
+            brandRandom.advanceRows(startIndex)
+            typeRandom.advanceRows(startIndex)
+            sizeRandom.advanceRows(startIndex)
+            containerRandom.advanceRows(startIndex)
+            commentRandom.advanceRows(startIndex)
         }
 
-        @Override
-        protected Part computeNext()
-        {
+        override fun computeNext(): Part? {
             if (index >= rowCount) {
-                return endOfData();
+                return endOfData()
             }
-
-            Part part = makePart(startIndex + index + 1);
-
-            nameRandom.rowFinished();
-            manufacturerRandom.rowFinished();
-            brandRandom.rowFinished();
-            typeRandom.rowFinished();
-            sizeRandom.rowFinished();
-            containerRandom.rowFinished();
-            commentRandom.rowFinished();
-
-            index++;
-
-            return part;
+            val part = makePart(startIndex + index + 1)
+            nameRandom.rowFinished()
+            manufacturerRandom.rowFinished()
+            brandRandom.rowFinished()
+            typeRandom.rowFinished()
+            sizeRandom.rowFinished()
+            containerRandom.rowFinished()
+            commentRandom.rowFinished()
+            index++
+            return part
         }
 
-        private Part makePart(long partKey)
-        {
-            String name = nameRandom.nextValue();
-
-            int manufacturer = manufacturerRandom.nextValue();
-            int brand = manufacturer * 10 + brandRandom.nextValue();
-
-            return new Part(partKey,
-                    partKey,
-                    name,
-                    String.format(ENGLISH, "Manufacturer#%d", manufacturer),
-                    String.format(ENGLISH, "Brand#%d", brand),
-                    typeRandom.nextValue(),
-                    sizeRandom.nextValue(),
-                    containerRandom.nextValue(),
-                    calculatePartPrice(partKey),
-                    commentRandom.nextValue());
+        private fun makePart(partKey: Long): Part {
+            val name = nameRandom.nextValue()
+            val manufacturer = manufacturerRandom.nextValue()
+            val brand = manufacturer * 10 + brandRandom.nextValue()
+            return Part(
+                partKey,
+                partKey,
+                name,
+                String.format(Locale.ENGLISH, "Manufacturer#%d", manufacturer),
+                String.format(Locale.ENGLISH, "Brand#%d", brand),
+                typeRandom.nextValue(),
+                sizeRandom.nextValue(),
+                containerRandom.nextValue(),
+                calculatePartPrice(partKey),
+                commentRandom.nextValue()
+            )
         }
     }
 
-    static long calculatePartPrice(long p)
-    {
-        long price = 90000;
+    companion object {
+        const val SCALE_BASE = 200000
+        private const val NAME_WORDS = 5
+        private const val MANUFACTURER_MIN = 1
+        private const val MANUFACTURER_MAX = 5
+        private const val BRAND_MIN = 1
+        private const val BRAND_MAX = 5
+        private const val SIZE_MIN = 1
+        private const val SIZE_MAX = 50
+        private const val COMMENT_AVERAGE_LENGTH = 14
+        @JvmStatic
+        fun calculatePartPrice(p: Long): Long {
+            var price: Long = 90000
 
-        // limit contribution to $200
-        price += (p / 10) % 20001;
-        price += (p % 1000) * 100;
-
-        return (price);
+            // limit contribution to $200
+            price += p / 10 % 20001
+            price += p % 1000 * 100
+            return price
+        }
     }
 }

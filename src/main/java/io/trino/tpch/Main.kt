@@ -2,6 +2,7 @@ package io.trino.tpch
 
 import io.trino.tpch.generators.ItemGenerator
 import io.trino.tpch.generators.NationGenerator
+import io.trino.tpch.generators.PartGenerator
 import io.trino.tpch.generators.RegionGenerator
 import org.apache.arrow.driver.jdbc.ArrowFlightConnection
 import org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
@@ -9,11 +10,11 @@ import org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
 import java.sql.PreparedStatement
 import java.util.*
 
-fun main(args: Array<String>) {
+fun main() {
     val scaleFactor = 1.0
     val part = 1
     val numberOfParts = 1
-    val batchSize = 10
+    val batchSize = 5
 
     val driver = ArrowFlightJdbcDriver()
     val url = "jdbc:arrow-flight://127.0.0.1:50060"
@@ -103,6 +104,7 @@ fun main(args: Array<String>) {
         // Data
         insert(RegionGenerator(), batchSize, con)
         insert(NationGenerator(), batchSize, con)
+        insert(PartGenerator(scaleFactor, part, numberOfParts), batchSize, con)
     }
 }
 
