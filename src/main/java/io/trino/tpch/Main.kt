@@ -2,6 +2,7 @@ package io.trino.tpch
 
 import io.trino.tpch.generators.CustomerGenerator
 import io.trino.tpch.generators.ItemGenerator
+import io.trino.tpch.generators.LineItemGenerator
 import io.trino.tpch.generators.NationGenerator
 import io.trino.tpch.generators.OrderGenerator
 import io.trino.tpch.generators.PartGenerator
@@ -18,8 +19,9 @@ fun main() {
     val scaleFactor = 1.0
     val part = 1
     val numberOfParts = 1
-    val batchSize = 5
+    val batchSize = 100
 
+    val start = System.currentTimeMillis();
     val driver = ArrowFlightJdbcDriver()
     val url = "jdbc:arrow-flight://127.0.0.1:50060"
     val props = Properties()
@@ -113,6 +115,10 @@ fun main() {
         insert(PartSupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(CustomerGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(OrderGenerator(scaleFactor, part, numberOfParts), batchSize, con)
+        insert(LineItemGenerator(scaleFactor, part, numberOfParts), batchSize, con)
+
+        val end = System.currentTimeMillis()
+        println("Generated data in ${(end - start) / 1000} seconds")
     }
 }
 

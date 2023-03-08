@@ -13,10 +13,22 @@
  */
 package io.trino.tpch
 
+import org.joda.time.format.DateTimeFormat
 import java.sql.PreparedStatement
+import java.util.*
 
 interface TpchEntity {
     val rowNumber: Long
     fun toLine(): String?
     fun setParams(ps: PreparedStatement, rowIdx: Int)
+
+    fun convertDate(dt: Int): String? {
+        val daysSinceEpoch = dt.toLong()
+        val millisSinceEpoch = daysSinceEpoch * 24L * 60L * 60L * 1000L
+        val date = Date(millisSinceEpoch)
+        val pattern = "yyyy-MM-dd HH:mm:ss.SSS"
+        val formatter = DateTimeFormat.forPattern(pattern)
+        val formattedDateTime = formatter.print(date.time)
+        return formattedDateTime
+    }
 }

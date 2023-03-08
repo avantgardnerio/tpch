@@ -68,19 +68,12 @@ class Order(
     }
 
     override fun setParams(ps: PreparedStatement, rowIdx: Int) {
-        val daysSinceEpoch = orderDate.toLong()
-        val millisSinceEpoch = daysSinceEpoch * 24L * 60L * 60L * 1000L
-        val date = Date(millisSinceEpoch)
-        val pattern = "yyyy-MM-dd HH:mm:ss.SSS"
-        val formatter = DateTimeFormat.forPattern(pattern)
-        val formattedDateTime = formatter.print(date.time)
-
         val base = rowIdx * 9
         ps.setInt(base + 1, orderKey.toInt())
         ps.setInt(base + 2, customerKey.toInt())
         ps.setString(base + 3, orderStatus.toString())
         ps.setFloat(base + 4, totalPriceInCents.toFloat() / 100f)
-        ps.setString(base + 5, formattedDateTime)
+        ps.setString(base + 5, convertDate(orderDate))
         ps.setString(base + 6, orderPriority)
         ps.setString(base + 7, clerk)
         ps.setInt(base + 8, shipPriority)

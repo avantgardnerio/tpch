@@ -97,23 +97,23 @@ class LineItem(
     }
 
     override fun setParams(ps: PreparedStatement, rowIdx: Int) {
-        val base = rowIdx * 17
+        val base = rowIdx * 16
         ps.setInt(base + 1, orderKey.toInt())
         ps.setInt(base + 2, partKey.toInt())
         ps.setInt(base + 3, supplierKey.toInt())
         ps.setInt(base + 4, lineNumber)
         ps.setFloat(base + 5, quantity.toFloat())
-        ps.setFloat(base + 7, extendedPriceInCents.toFloat() / 100f)
-        ps.setFloat(base + 8, discountPercent.toFloat() / 100f)
-        ps.setFloat(base + 9, taxPercent.toFloat() / 100f)
-        ps.setString(base + 10, returnFlag)
-        ps.setString(base + 11, status)
-        ps.setTimestamp(base + 12, Timestamp(shipDate.toLong()))
-        ps.setTimestamp(base + 13, Timestamp(commitDate.toLong()))
-        ps.setTimestamp(base + 14, Timestamp(receiptDate.toLong()))
-        ps.setString(base + 15, shipInstructions)
-        ps.setString(base + 16, shipMode)
-        ps.setString(base + 17, comment)
+        ps.setFloat(base + 6, extendedPriceInCents.toFloat() / 100f)
+        ps.setFloat(base + 7, discountPercent.toFloat() / 100f)
+        ps.setFloat(base + 8, taxPercent.toFloat() / 100f)
+        ps.setString(base + 9, returnFlag)
+        ps.setString(base + 10, status)
+        ps.setString(base + 11, convertDate(shipDate))
+        ps.setString(base + 12, convertDate(commitDate))
+        ps.setString(base + 13, convertDate(receiptDate))
+        ps.setString(base + 14, shipInstructions)
+        ps.setString(base + 15, shipMode)
+        ps.setString(base + 16, comment)
     }
 
 }
