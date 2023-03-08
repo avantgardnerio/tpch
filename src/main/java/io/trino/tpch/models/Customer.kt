@@ -11,103 +11,75 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.models;
+package io.trino.tpch.models
 
-import io.trino.tpch.TpchEntity;
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TpchEntity
+import java.sql.PreparedStatement
+import java.util.*
 
-import static io.trino.tpch.GenerateUtils.formatMoney;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+class Customer(
+    override val rowNumber: Long,
+    @JvmField val customerKey: Long,
+    name: String,
+    address: String,
+    @JvmField val nationKey: Long,
+    phone: String,
+    val accountBalanceInCents: Long,
+    marketSegment: String,
+    comment: String
+) : TpchEntity {
+    @JvmField
+    val name: String
 
-public class Customer
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long customerKey;
-    private final String name;
-    private final String address;
-    private final long nationKey;
-    private final String phone;
-    private final long accountBalance;
-    private final String marketSegment;
-    private final String comment;
+    @JvmField
+    val address: String
 
-    public Customer(long rowNumber, long customerKey, String name, String address, long nationKey, String phone, long accountBalance, String marketSegment, String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.customerKey = customerKey;
-        this.name = requireNonNull(name, "name is null");
-        this.address = requireNonNull(address, "address is null");
-        this.nationKey = nationKey;
-        this.phone = requireNonNull(phone, "phone is null");
-        this.accountBalance = accountBalance;
-        this.marketSegment = requireNonNull(marketSegment, "marketSegment is null");
-        this.comment = requireNonNull(comment, "comment is null");
+    @JvmField
+    val phone: String
+
+    @JvmField
+    val marketSegment: String
+
+    @JvmField
+    val comment: String
+
+    init {
+        this.name = Objects.requireNonNull(name, "name is null")
+        this.address = Objects.requireNonNull(address, "address is null")
+        this.phone = Objects.requireNonNull(phone, "phone is null")
+        this.marketSegment = Objects.requireNonNull(marketSegment, "marketSegment is null")
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    fun getAccountBalance(): Double {
+        return accountBalanceInCents / 100.0
     }
 
-    public long getCustomerKey()
-    {
-        return customerKey;
+    override fun toLine(): String? {
+        return String.format(
+            Locale.ENGLISH,
+            "%d|%s|%s|%d|%s|%s|%s|%s|",
+            customerKey,
+            name,
+            address,
+            nationKey,
+            phone,
+            GenerateUtils.formatMoney(accountBalanceInCents),
+            marketSegment,
+            comment
+        )
     }
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public String getAddress()
-    {
-        return address;
-    }
-
-    public long getNationKey()
-    {
-        return nationKey;
-    }
-
-    public String getPhone()
-    {
-        return phone;
-    }
-
-    public double getAccountBalance()
-    {
-        return accountBalance / 100.0;
-    }
-
-    public long getAccountBalanceInCents()
-    {
-        return accountBalance;
-    }
-
-    public String getMarketSegment()
-    {
-        return marketSegment;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH,
-                "%d|%s|%s|%d|%s|%s|%s|%s|",
-                customerKey,
-                name,
-                address,
-                nationKey,
-                phone,
-                formatMoney(accountBalance),
-                marketSegment,
-                comment);
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 8
+        ps.setInt(base + 1, customerKey.toInt())
+        ps.setString(base + 2, name)
+        ps.setString(base + 3, address)
+        ps.setInt(base + 4, nationKey.toInt())
+        ps.setString(base + 5, phone)
+        ps.setFloat(base + 6, accountBalanceInCents.toFloat() / 100.0f)
+        ps.setString(base + 7, marketSegment)
+        ps.setString(base + 8, comment)
     }
 }

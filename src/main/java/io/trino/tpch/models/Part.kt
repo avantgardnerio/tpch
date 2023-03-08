@@ -11,120 +11,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.models;
+package io.trino.tpch.models
 
-import io.trino.tpch.TpchEntity;
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TpchEntity
+import java.sql.PreparedStatement
+import java.sql.Timestamp
+import java.util.*
 
-import static io.trino.tpch.GenerateUtils.formatMoney;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+class Part(
+    override val rowNumber: Long,
+    @JvmField val partKey: Long,
+    name: String,
+    manufacturer: String,
+    brand: String,
+    type: String,
+    @JvmField val size: Int,
+    container: String,
+    val retailPriceInCents: Long,
+    comment: String
+) : TpchEntity {
+    @JvmField
+    val name: String
+    @JvmField
+    val manufacturer: String
+    @JvmField
+    val brand: String
+    @JvmField
+    val type: String
+    @JvmField
+    val container: String
+    @JvmField
+    val comment: String
 
-public class Part
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long partKey;
-    private final String name;
-    private final String manufacturer;
-    private final String brand;
-    private final String type;
-    private final int size;
-    private final String container;
-    private final long retailPrice;
-    private final String comment;
-
-    public Part(long rowNumber,
-            long partKey,
-            String name,
-            String manufacturer,
-            String brand,
-            String type,
-            int size,
-            String container,
-            long retailPrice,
-            String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.partKey = partKey;
-        this.name = requireNonNull(name, "name is null");
-        this.manufacturer = requireNonNull(manufacturer, "manufacturer is null");
-        this.brand = requireNonNull(brand, "brand is null");
-        this.type = requireNonNull(type, "type is null");
-        this.size = size;
-        this.container = requireNonNull(container, "container is null");
-        this.retailPrice = retailPrice;
-        this.comment = requireNonNull(comment, "comment is null");
+    init {
+        this.name = Objects.requireNonNull(name, "name is null")
+        this.manufacturer = Objects.requireNonNull(manufacturer, "manufacturer is null")
+        this.brand = Objects.requireNonNull(brand, "brand is null")
+        this.type = Objects.requireNonNull(type, "type is null")
+        this.container = Objects.requireNonNull(container, "container is null")
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    fun getRetailPrice(): Double {
+        return retailPriceInCents / 100.0
     }
 
-    public long getPartKey()
-    {
-        return partKey;
+    override fun toLine(): String? {
+        return String.format(
+            Locale.ENGLISH,
+            "%d|%s|%s|%s|%s|%d|%s|%s|%s|",
+            partKey,
+            name,
+            manufacturer,
+            brand,
+            type,
+            size,
+            container,
+            GenerateUtils.formatMoney(retailPriceInCents),
+            comment
+        )
     }
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public String getManufacturer()
-    {
-        return manufacturer;
-    }
-
-    public String getBrand()
-    {
-        return brand;
-    }
-
-    public String getType()
-    {
-        return type;
-    }
-
-    public int getSize()
-    {
-        return size;
-    }
-
-    public String getContainer()
-    {
-        return container;
-    }
-
-    public double getRetailPrice()
-    {
-        return retailPrice / 100.0;
-    }
-
-    public long getRetailPriceInCents()
-    {
-        return retailPrice;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH,
-                "%d|%s|%s|%s|%s|%d|%s|%s|%s|",
-                partKey,
-                name,
-                manufacturer,
-                brand,
-                type,
-                size,
-                container,
-                formatMoney(retailPrice),
-                comment);
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 8
+        ps.setInt(base + 1, partKey.toInt())
+        ps.setString(base + 1, name)
+        ps.setString(base + 2, manufacturer)
+        ps.setString(base + 3, brand)
+        ps.setString(base + 4, type)
+        ps.setInt(base + 5, size)
+        ps.setString(base + 6, container)
+        ps.setFloat(base + 7, retailPriceInCents.toFloat() / 100f)
+        ps.setString(base + 8, comment)
     }
 }

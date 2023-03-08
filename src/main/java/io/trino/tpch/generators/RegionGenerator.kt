@@ -22,7 +22,7 @@ import java.util.*
 class RegionGenerator @JvmOverloads constructor(
     distributions: Distributions = Distributions.getDefaultDistributions(),
     textPool: TextPool = TextPool.getDefaultTextPool()
-) : Iterable<Region?> {
+) : ItemGenerator<Region?> {
     private val distributions: Distributions
     private val textPool: TextPool
 
@@ -64,16 +64,16 @@ class RegionGenerator @JvmOverloads constructor(
         }
     }
 
+    override fun getInsertStmt(rowCount: Int): String {
+        val colCount = 3;
+        val rows = (0 until rowCount).map { rowIdx ->
+            val tokens = (1..colCount).map { colIdx -> "$${rowIdx * colCount + colIdx}" }
+            "(${tokens.joinToString(", ")})"
+        }.joinToString(",\n\t")
+        return "insert into region (r_regionkey, r_name, r_comment) values\n\t$rows"
+    }
+
     companion object {
         private const val COMMENT_AVERAGE_LENGTH = 72
-
-        fun getInsertStmt(rowCount: Int): String {
-            val colCount = 3;
-            val rows = (0 until rowCount).map { rowIdx ->
-                val tokens = (1..colCount).map { colIdx -> "$${rowIdx * colCount + colIdx}" }
-                "(${tokens.joinToString(", ")})"
-            }.joinToString(",\n\t")
-            return "insert into region (r_regionkey, r_name, r_comment) values\n\t$rows"
-        }
     }
 }

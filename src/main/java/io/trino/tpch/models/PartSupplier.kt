@@ -11,79 +11,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.models;
+package io.trino.tpch.models
 
-import io.trino.tpch.TpchEntity;
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TpchEntity
+import java.sql.PreparedStatement
+import java.sql.Timestamp
+import java.util.*
 
-import static io.trino.tpch.GenerateUtils.formatMoney;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+class PartSupplier(
+    override val rowNumber: Long,
+    @JvmField val partKey: Long,
+    @JvmField val supplierKey: Long,
+    @JvmField val availableQuantity: Int,
+    val supplyCostInCents: Long,
+    comment: String
+) : TpchEntity {
+    @JvmField
+    val comment: String
 
-public class PartSupplier
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long partKey;
-    private final long supplierKey;
-    private final int availableQuantity;
-    private final long supplyCost;
-    private final String comment;
-
-    public PartSupplier(long rowNumber, long partKey, long supplierKey, int availableQuantity, long supplyCost, String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.partKey = partKey;
-        this.supplierKey = supplierKey;
-        this.availableQuantity = availableQuantity;
-        this.supplyCost = supplyCost;
-        this.comment = requireNonNull(comment, "comment is null");
+    init {
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    fun getSupplyCost(): Double {
+        return supplyCostInCents / 100.0
     }
 
-    public long getPartKey()
-    {
-        return partKey;
+    override fun toLine(): String? {
+        return String.format(
+            Locale.ENGLISH,
+            "%d|%d|%d|%s|%s|",
+            partKey,
+            supplierKey,
+            availableQuantity,
+            GenerateUtils.formatMoney(supplyCostInCents),
+            comment
+        )
     }
 
-    public long getSupplierKey()
-    {
-        return supplierKey;
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 5
+        ps.setInt(base + 1, partKey.toInt())
+        ps.setInt(base + 2, supplierKey.toInt())
+        ps.setInt(base + 3, availableQuantity.toInt())
+        ps.setFloat(base + 4, supplyCostInCents.toFloat() / 100f)
+        ps.setString(base + 5, comment)
     }
 
-    public int getAvailableQuantity()
-    {
-        return availableQuantity;
-    }
-
-    public double getSupplyCost()
-    {
-        return supplyCost / 100.0;
-    }
-
-    public long getSupplyCostInCents()
-    {
-        return supplyCost;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH,
-                "%d|%d|%d|%s|%s|",
-                partKey,
-                supplierKey,
-                availableQuantity,
-                formatMoney(supplyCost),
-                comment);
-    }
 }

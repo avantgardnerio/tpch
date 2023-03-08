@@ -29,7 +29,7 @@ public enum PartSupplierColumn
         @Override
         public long getIdentifier(PartSupplier partSupplier)
         {
-            return partSupplier.getPartKey();
+            return partSupplier.partKey;
         }
     },
 
@@ -37,7 +37,7 @@ public enum PartSupplierColumn
         @Override
         public long getIdentifier(PartSupplier partSupplier)
         {
-            return partSupplier.getSupplierKey();
+            return partSupplier.supplierKey;
         }
     },
 
@@ -45,7 +45,7 @@ public enum PartSupplierColumn
         @Override
         public int getInteger(PartSupplier partSupplier)
         {
-            return partSupplier.getAvailableQuantity();
+            return partSupplier.availableQuantity;
         }
     },
 
@@ -67,7 +67,7 @@ public enum PartSupplierColumn
         @Override
         public String getString(PartSupplier partSupplier)
         {
-            return partSupplier.getComment();
+            return partSupplier.comment;
         }
     };
 

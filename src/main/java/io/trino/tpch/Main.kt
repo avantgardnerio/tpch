@@ -1,7 +1,9 @@
 package io.trino.tpch
 
+import io.trino.tpch.generators.ItemGenerator
 import io.trino.tpch.generators.NationGenerator
 import io.trino.tpch.generators.RegionGenerator
+import org.apache.arrow.driver.jdbc.ArrowFlightConnection
 import org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
 
 import java.sql.PreparedStatement
@@ -24,13 +26,47 @@ fun main(args: Array<String>) {
             // Schema
             assert(stmt.execute("create table region (r_regionkey int, r_name varchar, r_comment varchar, primary key (r_regionkey))"))
             assert(stmt.execute("create table nation (n_nationkey int, n_name varchar, n_regionkey int, n_comment varchar, primary key (n_nationkey))"))
-            assert(stmt.execute("create table part (p_partkey int, p_name varchar, p_mfgr varchar, p_brand varchar, p_type varchar, p_size int, p_container varchar, p_retailprice float, p_comment varchar, primary key (p_partkey))"))
 
-            assert(stmt.execute("create table supplier (s_suppkey int, s_name varchar, s_address varchar, s_nationkey int, s_phone varchar, s_acctbal float, s_comment varchar, primary key (s_suppkey))")) // FK to nation
+            assert(stmt.execute("""create table part (
+                |p_partkey int, 
+                |p_name varchar, 
+                |p_mfgr varchar, 
+                |p_brand varchar, 
+                |p_type varchar, 
+                |p_size int, 
+                |p_container varchar, 
+                |p_retailprice float, 
+                |p_comment varchar, 
+                |primary key (p_partkey))""".trimMargin()))
 
-            assert(stmt.execute("create table partsupp (ps_partkey int, ps_suppkey int, ps_availqty int, ps_supplycost float, ps_comment varchar, primary key (ps_partkey, ps_suppkey))")) // FK to part & supplier
+            assert(stmt.execute("create table supplier (" +
+                    "s_suppkey int, " +
+                    "s_name varchar, " +
+                    "s_address varchar, " +
+                    "s_nationkey int, " +
+                    "s_phone varchar, " +
+                    "s_acctbal float, " +
+                    "s_comment varchar, " +
+                    "primary key (s_suppkey))")) // FK to nation
 
-            assert(stmt.execute("create table customer (c_custkey int, c_name varchar, c_address varchar, c_nationkey int, c_phone varchar, c_acctbal float, c_mktsegment varchar, c_comment varchar, primary key (c_custkey))")) // FK to nation
+            assert(stmt.execute("""create table partsupp (
+                |ps_partkey int, 
+                |ps_suppkey int, 
+                |ps_availqty int, 
+                |ps_supplycost float, 
+                |ps_comment varchar, 
+                |primary key (ps_partkey, ps_suppkey))""".trimMargin())) // FK to part & supplier
+
+            assert(stmt.execute("""create table customer (
+                |c_custkey int, 
+                |c_name varchar, 
+                |c_address varchar, 
+                |c_nationkey int, 
+                |c_phone varchar, 
+                |c_acctbal float, 
+                |c_mktsegment varchar, 
+                |c_comment varchar, 
+                |primary key (c_custkey))""".trimMargin())) // FK to nation
 
             assert(stmt.execute("""create table orders (
                 |o_orderkey int, 
@@ -64,28 +100,28 @@ fun main(args: Array<String>) {
                 |primary key (l_orderkey, l_linenumber))""".trimMargin()))
         }
 
-        // Region
-        val regionBatch = RegionGenerator().take(batchSize).toList()
-        val regionSql = RegionGenerator.getInsertStmt(minOf(regionBatch.size, batchSize))
-        con.prepareStatement(regionSql).use { ps ->
-            regionBatch.forEachIndexed { idx, el -> el!!.setParams(ps, idx) }
-            ps.executeUpdate()
-        }
+        // Data
+        insert(RegionGenerator(), batchSize, con)
+        insert(NationGenerator(), batchSize, con)
+    }
+}
 
-        // Nation
-        val nationGen = NationGenerator().chunked(batchSize)
-        var ps: PreparedStatement? = null
-        var lastCount = -1
-        nationGen.forEach { batch ->
-            if(batch.size != lastCount) {
-                val sql = NationGenerator.getInsertStmt(minOf(batch.size, batchSize))
-                println(sql)
-                ps = con.prepareStatement(sql)
-                lastCount = batch.size
-            }
-            println("Inserting ${batch.size} rows...")
-            batch.forEachIndexed { idx, el -> el!!.setParams(ps!!, idx) }
-            ps!!.executeUpdate()
+private fun <T: TpchEntity?>insert(
+    nationGen: ItemGenerator<T>,
+    batchSize: Int,
+    con: ArrowFlightConnection
+) {
+    var ps: PreparedStatement? = null
+    var lastCount = -1
+    nationGen.chunked(batchSize).forEach { batch ->
+        if (batch.size != lastCount) {
+            val sql = nationGen.getInsertStmt(minOf(batch.size, batchSize))
+            println(sql)
+            ps = con.prepareStatement(sql)
+            lastCount = batch.size
         }
+        println("Inserting ${batch.size} rows...")
+        batch.forEachIndexed { idx, el -> el!!.setParams(ps!!, idx) }
+        ps!!.executeUpdate()
     }
 }

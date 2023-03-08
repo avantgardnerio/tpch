@@ -17,9 +17,10 @@ import io.trino.tpch.TpchEntity
 import java.sql.PreparedStatement
 import java.util.*
 
-class Region(private val rowNumber: Long, @JvmField val regionKey: Long, name: String, comment: String) : TpchEntity {
+class Region(override val rowNumber: Long, @JvmField val regionKey: Long, name: String, comment: String) : TpchEntity {
     @JvmField
     val name: String
+
     @JvmField
     val comment: String
 
@@ -28,15 +29,11 @@ class Region(private val rowNumber: Long, @JvmField val regionKey: Long, name: S
         this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    override fun getRowNumber(): Long {
-        return rowNumber
-    }
-
     override fun toLine(): String {
         return String.format(Locale.ENGLISH, "%d|%s|%s|", regionKey, name, comment)
     }
 
-    fun setParams(ps: PreparedStatement, rowIdx: Int) {
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
         val base = rowIdx * 3
         ps.setInt(base + 1, regionKey.toInt())
         ps.setString(base + 2, name)

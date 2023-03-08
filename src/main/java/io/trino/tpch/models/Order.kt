@@ -11,121 +11,72 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.models;
+package io.trino.tpch.models
 
-import io.trino.tpch.TpchEntity;
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TpchEntity
+import java.sql.PreparedStatement
+import java.sql.Timestamp
+import java.util.*
 
-import static io.trino.tpch.GenerateUtils.formatDate;
-import static io.trino.tpch.GenerateUtils.formatMoney;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+class Order(
+    override val rowNumber: Long,
+    @JvmField val orderKey: Long,
+    @JvmField val customerKey: Long,
+    @JvmField val orderStatus: Char,
+    val totalPriceInCents: Long,
+    @JvmField val orderDate: Int,
+    orderPriority: String,
+    clerk: String,
+    @JvmField val shipPriority: Int,
+    comment: String
+) : TpchEntity {
+    @JvmField
+    val orderPriority: String
 
-public class Order
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long orderKey;
-    private final long customerKey;
-    private final char orderStatus;
-    private final long totalPrice;
-    private final int orderDate;
-    private final String orderPriority;
-    private final String clerk;
-    private final int shipPriority;
-    private final String comment;
+    @JvmField
+    val clerk: String
 
-    public Order(long rowNumber,
-            long orderKey,
-            long customerKey,
-            char orderStatus,
-            long totalPrice,
-            int orderDate,
-            String orderPriority,
-            String clerk,
-            int shipPriority,
-            String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.orderKey = orderKey;
-        this.customerKey = customerKey;
-        this.orderStatus = orderStatus;
-        this.totalPrice = totalPrice;
-        this.orderDate = orderDate;
-        this.orderPriority = requireNonNull(orderPriority, "orderPriority is null");
-        this.clerk = requireNonNull(clerk, "clerk is null");
-        this.shipPriority = shipPriority;
-        this.comment = requireNonNull(comment, "comment is null");
+    @JvmField
+    val comment: String
+
+    init {
+        this.orderPriority = Objects.requireNonNull(orderPriority, "orderPriority is null")
+        this.clerk = Objects.requireNonNull(clerk, "clerk is null")
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    fun getTotalPrice(): Double {
+        return totalPriceInCents / 100.0
     }
 
-    public long getOrderKey()
-    {
-        return orderKey;
+    override fun toLine(): String? {
+        return String.format(
+            Locale.ENGLISH,
+            "%d|%d|%s|%s|%s|%s|%s|%d|%s|",
+            orderKey,
+            customerKey,
+            orderStatus,
+            GenerateUtils.formatMoney(totalPriceInCents),
+            GenerateUtils.formatDate(orderDate),
+            orderPriority,
+            clerk,
+            shipPriority,
+            comment
+        )
     }
 
-    public long getCustomerKey()
-    {
-        return customerKey;
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 9
+        ps.setInt(base + 1, orderKey.toInt())
+        ps.setInt(base + 2, customerKey.toInt())
+        ps.setString(base + 3, orderStatus.toString())
+        ps.setFloat(base + 4, totalPriceInCents.toFloat() / 100f)
+        ps.setTimestamp(base + 5, Timestamp(orderDate.toLong()))
+        ps.setString(base + 6, orderPriority)
+        ps.setString(base + 7, clerk)
+        ps.setInt(base + 8, shipPriority)
+        ps.setString(base + 9, comment)
     }
 
-    public char getOrderStatus()
-    {
-        return orderStatus;
-    }
-
-    public double getTotalPrice()
-    {
-        return totalPrice / 100.0;
-    }
-
-    public long getTotalPriceInCents()
-    {
-        return totalPrice;
-    }
-
-    public int getOrderDate()
-    {
-        return orderDate;
-    }
-
-    public String getOrderPriority()
-    {
-        return orderPriority;
-    }
-
-    public String getClerk()
-    {
-        return clerk;
-    }
-
-    public int getShipPriority()
-    {
-        return shipPriority;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH,
-                "%d|%d|%s|%s|%s|%s|%s|%d|%s|",
-                orderKey,
-                customerKey,
-                orderStatus,
-                formatMoney(totalPrice),
-                formatDate(orderDate),
-                orderPriority,
-                clerk,
-                shipPriority,
-                comment);
-    }
 }

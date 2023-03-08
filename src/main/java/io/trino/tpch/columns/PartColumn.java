@@ -29,7 +29,7 @@ public enum PartColumn
         @Override
         public long getIdentifier(Part part)
         {
-            return part.getPartKey();
+            return part.partKey;
         }
     },
 
@@ -37,7 +37,7 @@ public enum PartColumn
         @Override
         public String getString(Part part)
         {
-            return part.getName();
+            return part.name;
         }
     },
 
@@ -45,7 +45,7 @@ public enum PartColumn
         @Override
         public String getString(Part part)
         {
-            return part.getManufacturer();
+            return part.manufacturer;
         }
     },
 
@@ -53,7 +53,7 @@ public enum PartColumn
         @Override
         public String getString(Part part)
         {
-            return part.getBrand();
+            return part.brand;
         }
     },
 
@@ -61,7 +61,7 @@ public enum PartColumn
         @Override
         public String getString(Part part)
         {
-            return part.getType();
+            return part.type;
         }
     },
 
@@ -69,7 +69,7 @@ public enum PartColumn
         @Override
         public int getInteger(Part part)
         {
-            return part.getSize();
+            return part.size;
         }
     },
 
@@ -77,7 +77,7 @@ public enum PartColumn
         @Override
         public String getString(Part part)
         {
-            return part.getContainer();
+            return part.container;
         }
     },
 
@@ -99,7 +99,7 @@ public enum PartColumn
         @Override
         public String getString(Part part)
         {
-            return part.getComment();
+            return part.comment;
         }
     };
 

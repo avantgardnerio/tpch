@@ -11,194 +11,109 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch.models;
+package io.trino.tpch.models
 
-import io.trino.tpch.TpchEntity;
+import io.trino.tpch.GenerateUtils
+import io.trino.tpch.TpchEntity
+import java.sql.PreparedStatement
+import java.sql.Timestamp
+import java.util.*
 
-import static io.trino.tpch.GenerateUtils.formatDate;
-import static io.trino.tpch.GenerateUtils.formatMoney;
-import static java.util.Locale.ENGLISH;
-import static java.util.Objects.requireNonNull;
+class LineItem(
+    override val rowNumber: Long,
+    @JvmField val orderKey: Long,
+    @JvmField val partKey: Long,
+    @JvmField val supplierKey: Long,
+    @JvmField val lineNumber: Int,
+    @JvmField val quantity: Long,
+    val extendedPriceInCents: Long,
+    val discountPercent: Long,
+    val taxPercent: Long,
+    returnFlag: String,
+    status: String,
+    @JvmField val shipDate: Int,
+    @JvmField val commitDate: Int,
+    @JvmField val receiptDate: Int,
+    shipInstructions: String,
+    shipMode: String,
+    comment: String
+) : TpchEntity {
+    @JvmField
+    val returnFlag: String
 
-public class LineItem
-        implements TpchEntity
-{
-    private final long rowNumber;
-    private final long orderKey;
-    private final long partKey;
-    private final long supplierKey;
-    private final int lineNumber;
-    private final long quantity;
-    private final long extendedPrice;
-    private final long discount;
-    private final long tax;
-    private final String returnFlag;
-    private final String status;
-    private final int shipDate;
-    private final int commitDate;
-    private final int receiptDate;
-    private final String shipInstructions;
-    private final String shipMode;
-    private final String comment;
+    @JvmField
+    val status: String
 
-    public LineItem(long rowNumber,
-            long orderKey,
-            long partKey,
-            long supplierKey,
-            int lineNumber,
-            long quantity,
-            long extendedPrice,
-            long discount,
-            long tax,
-            String returnFlag,
-            String status,
-            int shipDate,
-            int commitDate,
-            int receiptDate,
-            String shipInstructions,
-            String shipMode,
-            String comment)
-    {
-        this.rowNumber = rowNumber;
-        this.orderKey = orderKey;
-        this.partKey = partKey;
-        this.supplierKey = supplierKey;
-        this.lineNumber = lineNumber;
-        this.quantity = quantity;
-        this.extendedPrice = extendedPrice;
-        this.discount = discount;
-        this.tax = tax;
-        this.returnFlag = requireNonNull(returnFlag, "returnFlag is null");
-        this.status = requireNonNull(status, "status is null");
-        this.shipDate = shipDate;
-        this.commitDate = commitDate;
-        this.receiptDate = receiptDate;
-        this.shipInstructions = requireNonNull(shipInstructions, "shipInstructions is null");
-        this.shipMode = requireNonNull(shipMode, "shipMode is null");
-        this.comment = requireNonNull(comment, "comment is null");
+    @JvmField
+    val shipInstructions: String
+
+    @JvmField
+    val shipMode: String
+
+    @JvmField
+    val comment: String
+
+    init {
+        this.returnFlag = Objects.requireNonNull(returnFlag, "returnFlag is null")
+        this.status = Objects.requireNonNull(status, "status is null")
+        this.shipInstructions = Objects.requireNonNull(shipInstructions, "shipInstructions is null")
+        this.shipMode = Objects.requireNonNull(shipMode, "shipMode is null")
+        this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    @Override
-    public long getRowNumber()
-    {
-        return rowNumber;
+    fun getExtendedPrice(): Double {
+        return extendedPriceInCents / 100.0
     }
 
-    public long getOrderKey()
-    {
-        return orderKey;
+    fun getDiscount(): Double {
+        return discountPercent / 100.0
     }
 
-    public long getPartKey()
-    {
-        return partKey;
+    fun getTax(): Double {
+        return taxPercent / 100.0
     }
 
-    public long getSupplierKey()
-    {
-        return supplierKey;
+    override fun toLine(): String? {
+        return String.format(
+            Locale.ENGLISH,
+            "%d|%d|%d|%d|%d|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|",
+            orderKey,
+            partKey,
+            supplierKey,
+            lineNumber,
+            quantity,
+            GenerateUtils.formatMoney(extendedPriceInCents),
+            GenerateUtils.formatMoney(discountPercent),
+            GenerateUtils.formatMoney(taxPercent),
+            returnFlag,
+            status,
+            GenerateUtils.formatDate(shipDate),
+            GenerateUtils.formatDate(commitDate),
+            GenerateUtils.formatDate(receiptDate),
+            shipInstructions,
+            shipMode,
+            comment
+        )
     }
 
-    public int getLineNumber()
-    {
-        return lineNumber;
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
+        val base = rowIdx * 17
+        ps.setInt(base + 1, orderKey.toInt())
+        ps.setInt(base + 2, partKey.toInt())
+        ps.setInt(base + 3, supplierKey.toInt())
+        ps.setInt(base + 4, lineNumber)
+        ps.setFloat(base + 5, quantity.toFloat())
+        ps.setFloat(base + 7, extendedPriceInCents.toFloat() / 100f)
+        ps.setFloat(base + 8, discountPercent.toFloat() / 100f)
+        ps.setFloat(base + 9, taxPercent.toFloat() / 100f)
+        ps.setString(base + 10, returnFlag)
+        ps.setString(base + 11, status)
+        ps.setTimestamp(base + 12, Timestamp(shipDate.toLong()))
+        ps.setTimestamp(base + 13, Timestamp(commitDate.toLong()))
+        ps.setTimestamp(base + 14, Timestamp(receiptDate.toLong()))
+        ps.setString(base + 15, shipInstructions)
+        ps.setString(base + 16, shipMode)
+        ps.setString(base + 17, comment)
     }
 
-    public long getQuantity()
-    {
-        return quantity;
-    }
-
-    public double getExtendedPrice()
-    {
-        return extendedPrice / 100.0;
-    }
-
-    public long getExtendedPriceInCents()
-    {
-        return extendedPrice;
-    }
-
-    public double getDiscount()
-    {
-        return discount / 100.0;
-    }
-
-    public long getDiscountPercent()
-    {
-        return discount;
-    }
-
-    public double getTax()
-    {
-        return tax / 100.0;
-    }
-
-    public long getTaxPercent()
-    {
-        return tax;
-    }
-
-    public String getReturnFlag()
-    {
-        return returnFlag;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public int getShipDate()
-    {
-        return shipDate;
-    }
-
-    public int getCommitDate()
-    {
-        return commitDate;
-    }
-
-    public int getReceiptDate()
-    {
-        return receiptDate;
-    }
-
-    public String getShipInstructions()
-    {
-        return shipInstructions;
-    }
-
-    public String getShipMode()
-    {
-        return shipMode;
-    }
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-    @Override
-    public String toLine()
-    {
-        return String.format(ENGLISH,
-                "%d|%d|%d|%d|%d|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|",
-                orderKey,
-                partKey,
-                supplierKey,
-                lineNumber,
-                quantity,
-                formatMoney(extendedPrice),
-                formatMoney(discount),
-                formatMoney(tax),
-                returnFlag,
-                status,
-                formatDate(shipDate),
-                formatDate(commitDate),
-                formatDate(receiptDate),
-                shipInstructions,
-                shipMode,
-                comment);
-    }
 }

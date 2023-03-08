@@ -18,7 +18,7 @@ import java.sql.PreparedStatement
 import java.util.*
 
 class Nation(
-    private val rowNumber: Long,
+    override val rowNumber: Long,
     @JvmField val nationKey: Long,
     name: String,
     @JvmField val regionKey: Long,
@@ -36,15 +36,11 @@ class Nation(
         this.comment = Objects.requireNonNull(comment, "comment is null")
     }
 
-    override fun getRowNumber(): Long {
-        return rowNumber
-    }
-
     override fun toLine(): String {
         return String.format(Locale.ENGLISH, "%d|%s|%d|%s|", nationKey, name, regionKey, comment)
     }
 
-    fun setParams(ps: PreparedStatement, rowIdx: Int) {
+    override fun setParams(ps: PreparedStatement, rowIdx: Int) {
         val base = rowIdx * 4
         ps.setInt(base + 1, nationKey.toInt())
         ps.setString(base + 2, name)

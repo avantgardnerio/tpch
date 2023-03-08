@@ -11,11 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.tpch;
+package io.trino.tpch
 
-public interface TpchEntity
-{
-    long getRowNumber();
+import java.sql.PreparedStatement
 
-    String toLine();
+interface TpchEntity {
+    val rowNumber: Long
+    fun toLine(): String?
+    fun setParams(ps: PreparedStatement, rowIdx: Int)
 }
