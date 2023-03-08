@@ -3,6 +3,7 @@ package io.trino.tpch
 import io.trino.tpch.generators.CustomerGenerator
 import io.trino.tpch.generators.ItemGenerator
 import io.trino.tpch.generators.NationGenerator
+import io.trino.tpch.generators.OrderGenerator
 import io.trino.tpch.generators.PartGenerator
 import io.trino.tpch.generators.PartSupplierGenerator
 import io.trino.tpch.generators.RegionGenerator
@@ -77,7 +78,7 @@ fun main() {
                 |o_custkey int, 
                 |o_orderstatus varchar, 
                 |o_totalprice float, 
-                |o_orderdate timestamp, 
+                |o_orderdate datetime, 
                 |o_orderpriority varchar, 
                 |o_clerk varchar, 
                 |o_shippriority int, 
@@ -95,9 +96,9 @@ fun main() {
                 |l_tax float, 
                 |l_returnflag varchar, 
                 |l_linestatus varchar, 
-                |l_shipdate timestamp, 
-                |l_commitdate timestamp, 
-                |l_receiptdate timestamp, 
+                |l_shipdate datetime, 
+                |l_commitdate datetime, 
+                |l_receiptdate datetime, 
                 |l_shipinstruct varchar, 
                 |l_shipmode varchar, 
                 |l_comment varchar, 
@@ -111,6 +112,7 @@ fun main() {
         insert(SupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(PartSupplierGenerator(scaleFactor, part, numberOfParts), batchSize, con)
         insert(CustomerGenerator(scaleFactor, part, numberOfParts), batchSize, con)
+        insert(OrderGenerator(scaleFactor, part, numberOfParts), batchSize, con)
     }
 }
 
