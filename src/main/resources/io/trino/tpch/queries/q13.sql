@@ -1,4 +1,3 @@
--- database: presto; groups: tpch; tables: customer
 SELECT
   c_count,
   count(*) AS custdist

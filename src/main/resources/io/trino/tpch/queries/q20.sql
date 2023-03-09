@@ -1,4 +1,3 @@
--- database: presto; groups: tpch; tables: supplier,nation,partsupp,lineitem,part
 SELECT
   s_name,
   s_address
@@ -24,8 +23,8 @@ WHERE
         WHERE
           l_partkey = ps_partkey
           AND l_suppkey = ps_suppkey
-          AND l_shipdate >= date('1994-01-01')
-          AND l_shipdate < date('1994-01-01') + interval '1' YEAR
+          AND l_shipdate >= date '1994-01-01'
+          AND l_shipdate < date '1994-01-01' + interval '1' YEAR
 )
 )
 AND s_nationkey = n_nationkey

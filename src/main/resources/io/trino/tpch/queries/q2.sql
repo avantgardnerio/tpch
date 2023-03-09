@@ -1,4 +1,3 @@
--- database: presto; groups: tpch; tables: part,supplier,partsupp,nation,region
 SELECT
   s_acctbal,
   s_name,

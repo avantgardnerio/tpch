@@ -1,4 +1,3 @@
--- database: presto; groups: tpch; tables: lineitem
 SELECT
   l_returnflag,
   l_linestatus,

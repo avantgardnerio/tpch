@@ -1,4 +1,3 @@
--- database: presto; groups: tpch, big_query; tables: part,supplier,lineitem,partsupp,orders,nation
 SELECT
   nation,
   o_year,
