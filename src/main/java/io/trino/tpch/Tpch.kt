@@ -17,7 +17,9 @@ fun main() {
                     var sql = GenerateUtils::class.java.getResource("queries/q$i.sql")!!.readText()
                     val stmts = sql.split(";").map { it.trim() }.filter { it.isNotBlank() }
                     if(stmts.size > 1) {
-                        stmt.executeUpdate(stmts[0])
+                        con.prepareStatement(stmts[0]).use { stmt ->
+                            stmt.executeUpdate()
+                        }
                         sql = stmts[1]
                     }
                     val start = System.currentTimeMillis();
